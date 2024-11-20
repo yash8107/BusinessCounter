@@ -1,18 +1,19 @@
 {
   "name": "business-counter",
   "version": "1.0.0",
-  "description": "BusinessCounter BFF Service API Using typescript",
+  "description": "BusinessCounter BFF Service API",
   "main": "index.js",
+  "type": "module", 
   "scripts": {
     "test": "Jest --coverage",
-    "start": "ts-node src/index.ts"
+    "start": "nodemon index.js"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/yash8107/BusinessCounter.git"
   },
   "keywords": [],
-  "author": "",
+  "author": "Yash Singhal",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/yash8107/BusinessCounter/issues"
@@ -20,15 +21,14 @@
   "homepage": "https://github.com/yash8107/BusinessCounter#readme",
   "devDependencies": {
     "@types/express": "^5.0.0",
-    "@types/node": "^22.9.0",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.6.3"
+    "@types/node": "^22.9.0"
   },
   "dependencies": {
     "dotenv": "^16.4.5",
     "express": "^4.21.1",
+    "nodemon": "^3.1.7",
     "pg": "^8.13.1",
-    "reflect-metadata": "^0.2.2",
-    "typeorm": "^0.3.20"
+    "pg-hstore": "^2.3.4",
+    "sequelize": "^6.37.5"
   }
 }
