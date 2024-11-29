@@ -1,7 +1,7 @@
-import { Model } from "sequelize";
+import { Model, DataTypes } from "sequelize";
 
-module.exports = (sequelize, DataTypes) => {
-  class Roles extends Model {
+export default function(sequelize) {
+  class Role extends Model {
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
@@ -9,29 +9,46 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
+      Role.hasMany(models.User, {
+        foreignKey: 'role_id',
+        as: 'users'
+      });
     }
   }
-  Roles.init({
+
+  Role.init({
     role_name: {
       type: DataTypes.STRING,
       allowNull: false,
-      unique: true, // Ensure unique role names
+      unique: true,
+      validate: {
+        isIn: [['SUPER_ADMIN', 'ADMIN', 'USER']]
+      }
     },
     status: {
       type: DataTypes.ENUM('active', 'inactive'),
       allowNull: false,
+      defaultValue: 'active'
+    },
+    description: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
+    permissions: {
+      type: DataTypes.JSON,
+      allowNull: true
     },
     created_by: {
       type: DataTypes.INTEGER,
-      allowNull: true,
+      allowNull: true
     },
     updated_by: {
       type: DataTypes.INTEGER,
-      allowNull: true,
+      allowNull: true
     },
     deleted_by: {
       type: DataTypes.INTEGER,
-      allowNull: true,
+      allowNull: true
     },
     createdAt: {
       type: DataTypes.DATE,
@@ -49,9 +66,11 @@ module.exports = (sequelize, DataTypes) => {
     }
   }, {
     sequelize,
-    modelName: 'Roles',
-    paranoid: true, // Enables soft deletes
+    modelName: 'Role',
+    tableName: 'roles',
+    timestamps: true,
+    paranoid: true
   });
 
-  return Roles;
-};
+  return Role;
+}

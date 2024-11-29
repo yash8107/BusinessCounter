@@ -1,103 +1,88 @@
 import { Model, DataTypes } from "sequelize";
 
-module.exports = (sequelize) => {
+export default function(sequelize) {
   class User extends Model {
-    /**
-     * Helper method for defining associations.
-     * This method is not a part of Sequelize lifecycle.
-     * The `models/index` file will call this method automatically.
-     */
     static associate(models) {
-      // define association here
+      // Role association
+      User.belongsTo(models.Role, {
+        foreignKey: 'role_id',
+        as: 'role'
+      });
+
+      // Admin has many staff members
+      User.hasMany(models.StaffProfile, {
+        foreignKey: 'admin_id',
+        as: 'staffMembers'
+      });
     }
   }
+
   User.init({
     first_name: {
       type: DataTypes.STRING,
-      allowNull: false,
-    },
-    middle_name: {
-      type: DataTypes.STRING,
-      allowNull: true,
+      allowNull: false
     },
     last_name: {
       type: DataTypes.STRING,
-      allowNull: true,
+      allowNull: false
     },
     email: {
       type: DataTypes.STRING,
-      allowNull: true,
+      allowNull: false,
       unique: true,
+      validate: {
+        isEmail: true
+      }
     },
     password: {
       type: DataTypes.STRING,
-      allowNull: false,
-    },
-    gender: {
-      type: DataTypes.ENUM('male', 'female', 'other'),
-      allowNull: false,
+      allowNull: false
     },
     phone: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: false
     },
-    country_code: {
+    business_name: {
       type: DataTypes.STRING,
-      allowNull: true,
+      allowNull: true
     },
-    created_by: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-    },
-    updated_by: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-    },
-    deleted_by: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
+    business_type: {
+      type: DataTypes.STRING,
+      allowNull: true
     },
     role_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
+      references: {
+        model: 'roles',
+        key: 'id'
+      }
     },
-    address_line1: {
-      type: DataTypes.STRING,
-      allowNull: true,
+    status: {
+      type: DataTypes.ENUM('active', 'inactive', 'suspended'),
+      defaultValue: 'active'
     },
-    address_line2: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    city: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    state: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    postal_code: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    country: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    createdAt: {
-      type: DataTypes.DATE,
-      allowNull: false,
-      defaultValue: DataTypes.NOW, // Optional: Set a default value
-    },
-    updatedAt: {
-      type: DataTypes.DATE,
-      allowNull: false,
-      defaultValue: DataTypes.NOW, // Optional: Set a default value
+    created_by: {
+      type: DataTypes.INTEGER,
+      allowNull: true
     }
   }, {
     sequelize,
     modelName: 'User',
+    tableName: 'users',
+    timestamps: true,
+    paranoid: true,
+    hooks: {
+      beforeCreate: async (user) => {
+        if (!user.business_name && user.first_name) {
+          user.business_name = `${user.first_name}'s Business`;
+        }
+        if (!user.business_type) {
+          user.business_type = 'Other';
+        }
+      }
+    }
   });
+
   return User;
-};
+}
