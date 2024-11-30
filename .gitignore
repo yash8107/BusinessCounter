@@ -8,7 +8,6 @@ dist/
 *.tsbuildinfo
 
 # Environment variables
-.env
 
 # Logs
 logs/

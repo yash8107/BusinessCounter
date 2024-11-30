@@ -1,6 +1,10 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
+import passport from 'passport';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import './src/config/passport.js';
 import authRouter from './src/routes/authRoute.js';
 import { authenticateToken } from './src/middleware/tokenVerify.js';
 import db from './src/models/index.js';
@@ -8,9 +12,18 @@ import { seedInitialSetup } from './src/seeders/initialSetup.js';
 
 dotenv.config();
 
+// ES module dirname setup
+const __filename = fileURLToPath(import.meta.url); // need to delete
+const __dirname = path.dirname(__filename); // need to delete
+// Serve static files from public directory
+app.use(express.static(path.join(__dirname, 'public')));          //------need to delete 
+
 const app = express();
 app.use(express.json());
 app.use(cors());
+
+// Initialize Passport for authentication with Google
+app.use(passport.initialize());
 
 // Routes
 app.use('/api/v1/auth', authRouter);
@@ -54,8 +67,8 @@ async function startServer() {
         const Role = db.Role;
         const adminRole = await Role.findOne();
         if (!adminRole) {
-            await seedInitialSetup();
-            console.log('Initial setup completed successfully.');
+        await seedInitialSetup();
+        console.log('Initial setup completed successfully.');
         }
         
         // Start the server
