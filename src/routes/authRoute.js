@@ -1,5 +1,5 @@
 import express from 'express';
-import { signup, login } from '../controller/authController.js';
+import { signup, login, forgotPassword, resetPassword } from '../controller/authController.js';
 import { staffLogin, getStaffProfile } from '../controller/staffController.js';
 import { authenticateToken } from '../middleware/tokenVerify.js';
 import { checkRole, ROLES } from '../middleware/roleCheck.js';
@@ -12,6 +12,8 @@ const router = express.Router();
 // Public routes
 router.post('/login', login);
 router.post('/register', signup); // Public registration for business admins
+router.post('/forgot-password', forgotPassword);
+router.post('/reset-password', resetPassword);
 
 // Google OAuth routes
 router.get('/google',
