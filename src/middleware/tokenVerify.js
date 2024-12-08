@@ -4,35 +4,34 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 export const authenticateToken = (req, res, next) => {
-    const authHeader = req.headers['authorization'];
-    console.log('Auth Header:', authHeader);
-
-    if (!authHeader) {
-        return res.status(401).json({
-            status: 'error',
-            message: 'No authorization header found'
-        });
-    }
-
-    const token = authHeader.split(' ')[1];
-    console.log('Token:', token);
-    console.log('JWT Secret:', process.env.JWT_SECRET);
-
-    if (!token) {
-        return res.status(401).json({
-            status: 'error',
-            message: 'No token provided'
-        });
-    }
-
     try {
+        // Check for token in cookies
+        const token = req.cookies.authToken;
+        
+        console.log('Cookies received:', req.cookies);
+        console.log('Auth token from cookie:', token);
+
+        if (!token) {
+            return res.status(401).json({
+                status: 'error',
+                message: 'No token provided'
+            });
+        }
+
+        // Verify the token
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         console.log('Decoded token:', decoded);
+        
+        // Attach user info to request
         req.user = decoded;
         next();
     } catch (error) {
         console.error('Token verification error:', error.message);
-        return res.status(403).json({
+        
+        // Clear invalid token
+        res.clearCookie('authToken');
+        
+        return res.status(401).json({
             status: 'error',
             message: 'Invalid or expired token'
         });
