@@ -8,8 +8,19 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 import { ROLES } from '../middleware/roleCheck.js';
+import nodemailer from 'nodemailer';
+import crypto from 'crypto';
 
 dotenv.config();
+
+// Create email transporter
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASSWORD
+    }
+});
 
 // Signup Function
 export const signup = async (req, res) => {
@@ -269,8 +280,16 @@ export const login = async (req, res) => {
             userRole = ROLES.SUPER_ADMIN;
         }
 
+        // Check if password exists and is a string
+        if (!user.password || typeof user.password !== 'string') {
+            return res.status(401).json({
+                status: 'error',
+                message: 'Invalid credentials'
+            });
+        }
+
         // Verify password
-        const isValidPassword = await bcrypt.compare(password, user.password);
+        const isValidPassword = await bcrypt.compare(password.toString(), user.password);
         if (!isValidPassword) {
             return res.status(401).json({
                 status: 'error',
@@ -288,6 +307,14 @@ export const login = async (req, res) => {
             process.env.JWT_SECRET,
             { expiresIn: '24h' }
         );
+
+        // Set cookie
+        res.cookie('authToken', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'Lax',
+            maxAge: 24 * 60 * 60 * 1000 // 24 hours
+        });
 
         // Prepare response data
         const responseData = {
@@ -308,20 +335,120 @@ export const login = async (req, res) => {
             responseData.company_name = user.company_name;
         }
 
-        return res.status(200).json({
+        // Send success response
+        res.status(200).json({
             status: 'success',
             message: 'Login successful',
-            data: {
-                user: responseData,
-                token
-            }
+            data: responseData
         });
 
     } catch (error) {
         console.error('Login error:', error);
-        return res.status(500).json({
+        res.status(500).json({
             status: 'error',
-            message: 'Internal server error'
+            message: 'An error occurred during login'
+        });
+    }
+};
+
+// Forgot Password
+export const forgotPassword = async (req, res) => {
+    try {
+        const { email } = req.body;
+
+        // Find user
+        const user = await User.findOne({ where: { email } });
+        if (!user) {
+            return res.status(404).json({
+                status: 'error',
+                message: 'No account found with that email address'
+            });
+        }
+
+        // Generate reset token
+        const resetToken = crypto.randomBytes(32).toString('hex');
+        const resetTokenExpiry = Date.now() + 3600000; // 1 hour
+
+        // Save reset token to user
+        await user.update({
+            reset_token: resetToken,
+            reset_token_expiry: resetTokenExpiry
+        });
+
+        // Send email
+        const resetUrl = `http://localhost:5173/reset-password/${resetToken}`;
+        
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: email,
+            subject: 'Password Reset Request',
+            html: `
+                <h1>Password Reset Request</h1>
+                <p>You requested a password reset. Click the link below to reset your password:</p>
+                <a href="${resetUrl}">Reset Password</a>
+                <p>This link will expire in 1 hour.</p>
+                <p>If you didn't request this, please ignore this email.</p>
+            `
+        };
+
+        await transporter.sendMail(mailOptions);
+
+        res.status(200).json({
+            status: 'success',
+            message: 'Password reset instructions sent to your email'
+        });
+
+    } catch (error) {
+        console.error('Forgot password error:', error);
+        res.status(500).json({
+            status: 'error',
+            message: 'Failed to process password reset request'
+        });
+    }
+};
+
+// Reset Password
+export const resetPassword = async (req, res) => {
+    try {
+        const { token, password } = req.body;
+
+        // Find user with valid reset token
+        const user = await User.findOne({
+            where: {
+                reset_token: token,
+                reset_token_expiry: {
+                    [db.Sequelize.Op.gt]: Date.now()
+                }
+            }
+        });
+
+        if (!user) {
+            return res.status(400).json({
+                status: 'error',
+                message: 'Invalid or expired reset token'
+            });
+        }
+
+        // Hash new password
+        const hashedPassword = await bcrypt.hash(password, 12);
+
+        // Update user password and clear reset token
+        await user.update({
+            password: hashedPassword,
+            reset_token: null,
+            reset_token_expiry: null
+        });
+
+        res.status(200).json({
+            status: 'success',
+            message: 'Password has been reset successfully'
+        });
+
+    } catch (error) {
+        console.error('Reset password error:', error);
+        res.status(500).json({
+            status: 'error',
+            message: 'Failed to reset password'
         });
     }
 };

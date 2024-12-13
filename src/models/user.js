@@ -36,7 +36,12 @@ export default function(sequelize) {
     },
     password: {
       type: DataTypes.STRING,
-      allowNull: false
+      allowNull: true
+    },
+    google_id: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      unique: true
     },
     phone: {
       type: DataTypes.STRING,
