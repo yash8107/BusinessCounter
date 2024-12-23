@@ -1,8 +1,10 @@
 'use strict';
+const { DataTypes } = require('sequelize');
+
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
-  async up(queryInterface, DataTypes) {
-    await queryInterface.createTable('Users', {
+  async up(queryInterface, Sequelize) {
+    await queryInterface.createTable('users', {
       id: {
         allowNull: false,
         autoIncrement: true,
@@ -28,11 +30,16 @@ module.exports = {
       },
       password: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: true,
       },
+      google_id: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        unique: true
+    },
       gender: {
         type: DataTypes.ENUM('male', 'female', 'other'),
-        allowNull: false,
+        allowNull: true,
       },
       phone: {
         type: DataTypes.STRING,
@@ -52,7 +59,7 @@ module.exports = {
       },
       deleted_by: {
         type: DataTypes.INTEGER,
-        allowNull: false,
+        allowNull: true,
       },
       role_id: {
         type: DataTypes.INTEGER,
@@ -84,15 +91,21 @@ module.exports = {
       },
       createdAt: {
         allowNull: false,
-        type: DataTypes.DATE
+        type: DataTypes.DATE,
+        defaultValue: Sequelize.NOW
       },
       updatedAt: {
         allowNull: false,
-        type: DataTypes.DATE
+        type: DataTypes.DATE,
+        defaultValue: Sequelize.NOW
+      },
+      deletedAt: {
+        type: DataTypes.DATE,
+        allowNull: true
       }
     });
   },
   async down(queryInterface, DataTypes) {
-    await queryInterface.dropTable('Users');
+    await queryInterface.dropTable('users');
   }
 };

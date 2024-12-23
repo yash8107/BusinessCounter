@@ -11,7 +11,7 @@ import authRouter from './src/routes/authRoute.js';
 import { authenticateToken } from './src/middleware/tokenVerify.js';
 import db from './src/models/index.js';
 import { seedInitialSetup } from './src/seeders/initialSetup.js';
-
+import customerRouter from './src/routes/customerRoute.js';
 dotenv.config();
 
 // ES module dirname setup
@@ -24,6 +24,11 @@ const app = express();
 app.use(express.json());
 app.use(cookieParser());
 
+// Security middleware
+app.use(helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+    contentSecurityPolicy: false
+}));
 // Configure CORS with credentials
 app.use(cors({
     origin: 'http://localhost:5173',
@@ -31,12 +36,6 @@ app.use(cors({
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
     exposedHeaders: ['set-cookie']
-}));
-
-// Security middleware
-app.use(helmet({
-    crossOriginResourcePolicy: { policy: "cross-origin" },
-    contentSecurityPolicy: false
 }));
 
 // Global middleware for cookie settings
@@ -48,12 +47,12 @@ app.use((req, res, next) => {
 
 // Serve static files from public directory
 app.use(express.static(path.join(__dirname, 'public')));         
-
 // Initialize Passport for authentication with Google
 app.use(passport.initialize());
 
 // Routes
 app.use('/api/v1/auth', authRouter);
+app.use('/api/v1/customers', customerRouter);
 
 app.get('/', (req, res) => {
     res.status(200).json({
@@ -68,6 +67,7 @@ app.get('/protected-route', authenticateToken, (req, res) => {
         message: "You have access to this protected route!"
     });
 });
+
 
 // Handle 404 routes
 app.use("*", (req, res) => {
@@ -94,8 +94,8 @@ async function startServer() {
         const Role = db.Role;
         const adminRole = await Role.findOne();
         if (!adminRole) {
-        await seedInitialSetup();
-        console.log('Initial setup completed successfully.');
+            await seedInitialSetup();
+            console.log('Initial setup completed successfully.');
         }
         
         // Start the server

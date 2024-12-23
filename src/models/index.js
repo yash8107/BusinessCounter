@@ -63,7 +63,7 @@ const modelFiles = readdirSync(__dirname)
 for (const file of modelFiles) {
   const modelPath = new URL(join('file:', '', __dirname, file), import.meta.url);
   const modelModule = await import(modelPath);
-  const model = modelModule.default(sequelize);
+  const model = modelModule.default(sequelize, Sequelize.DataTypes);
   db[model.name] = model;
 }
 

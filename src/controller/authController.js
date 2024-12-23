@@ -1,7 +1,5 @@
 'use strict';
 
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
 import db from '../models/index.js';
 const { User, Role, ServiceProviderProfile, StaffProfile } = db;
 import bcrypt from 'bcryptjs';

@@ -11,15 +11,7 @@ export default (sequelize) => {
   }
 
   ServiceProviderProfile.init({
-    first_name: {
-      type: DataTypes.STRING,
-      allowNull: false
-    },
-    middle_name: {
-      type: DataTypes.STRING,
-      allowNull: true
-    },
-    last_name: {
+    name: {
       type: DataTypes.STRING,
       allowNull: false
     },
@@ -124,6 +116,20 @@ export default (sequelize) => {
     },
     updated_by: {
       type: DataTypes.INTEGER,
+      allowNull: true
+    },
+    createdAt: {
+      allowNull: false,
+      type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW
+    },
+    updatedAt: {
+      allowNull: false,
+      type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW
+    },
+    deletedAt: {
+      type: DataTypes.DATE,
       allowNull: true
     }
   }, {
