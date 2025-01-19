@@ -1,0 +1,15 @@
+FROM node:18
+WORKDIR /usr/src/app
+COPY package*.json ./
+RUN npm install
+COPY . .
+EXPOSE 3000
+ENV PORT=3000
+ENV NODE_ENV=production
+
+# Run database migrations and seeders
+RUN npx sequelize-cli db:migrate
+RUN node src/seeders/initialSetup.js
+
+# Start the application
+CMD ["npm", "start"]
