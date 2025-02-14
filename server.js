@@ -12,7 +12,9 @@ import { authenticateToken } from './src/middleware/tokenVerify.js';
 import db from './src/models/index.js';
 import { seedInitialSetup } from './src/seeders/initialSetup.js';
 import customerRouter from './src/routes/customerRoute.js';
-import invoiceRoutes from './src/routes/invoiceRoutes.js';
+import { Sequelize } from 'sequelize';
+import invoiceRoutes from './src/routes/invoiceRoute.js';
+
 dotenv.config();
 
 // ES module dirname setup
@@ -85,6 +87,25 @@ console.log('Using port:', PORT);
 // Sync database and start server
 async function startServer() {
     try {
+        // Create database if it doesn't exist
+        const sequelize = new Sequelize(
+            'postgres',
+            process.env.DB_USER,
+            process.env.DB_PASS,
+            {
+                host: process.env.DB_HOST,
+                dialect: 'postgres',
+                logging: false
+            }
+        );
+
+        await sequelize.query(`CREATE DATABASE "${process.env.DB_NAME}";`)
+        .catch(error => {
+            if (error.original.code !== '42P04') { // 42P04 is the error code for "database already exists"
+                throw error;
+            }
+        });
+        console.log(`Database "${process.env.DB_NAME}" created or already exists.`);
         // Make sure database is connected
         await db.sequelize.authenticate();
         console.log('Database connection has been established successfully.');
