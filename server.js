@@ -13,7 +13,7 @@ import db from './src/models/index.js';
 import { seedInitialSetup } from './src/seeders/initialSetup.js';
 import customerRouter from './src/routes/customerRoute.js';
 import { Sequelize } from 'sequelize';
-import invoiceRoutes from './src/routes/invoiceRoute.js';
+import invoiceRoutes from './src/routes/invoiceRoutes.js';
 
 dotenv.config();
 
