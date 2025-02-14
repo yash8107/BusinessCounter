@@ -300,7 +300,9 @@ export const login = async (req, res) => {
             { 
                 id: user.id,
                 email: user.email,
-                role: userRole
+                role: userRole,
+                phone: user.phone,
+
             },
             process.env.JWT_SECRET,
             { expiresIn: '24h' }
@@ -320,7 +322,9 @@ export const login = async (req, res) => {
             email: user.email,
             first_name: user.first_name,
             last_name: user.last_name,
-            role: userRole
+            phone: user.phone,
+            role: userRole,
+            token: token
         };
 
         // Add business info for admin

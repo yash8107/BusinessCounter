@@ -12,6 +12,7 @@ import { authenticateToken } from './src/middleware/tokenVerify.js';
 import db from './src/models/index.js';
 import { seedInitialSetup } from './src/seeders/initialSetup.js';
 import customerRouter from './src/routes/customerRoute.js';
+import invoiceRoutes from './src/routes/invoiceRoutes.js';
 dotenv.config();
 
 // ES module dirname setup
@@ -53,6 +54,8 @@ app.use(passport.initialize());
 // Routes
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/customers', customerRouter);
+// Use the invoice routes
+app.use('/invoices', invoiceRoutes);
 
 app.get('/', (req, res) => {
     res.status(200).json({
