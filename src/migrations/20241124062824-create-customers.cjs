@@ -39,7 +39,7 @@ module.exports = {
         type: DataTypes.DATE,
         allowNull: true
       },
-      userId: {
+      providerId: {
         type: DataTypes.INTEGER,
         allowNull: false,
         references: {

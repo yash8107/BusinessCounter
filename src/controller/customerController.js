@@ -6,11 +6,11 @@ const { Customer } = db;
 export const createCustomer = async (req, res) => {
     try {
         const { name, phone, email, balance, lastTransaction } = req.body;
-        const userId = req.user.id;
-        if(!userId){
+        const user_providerId = req.user.id;
+        if(!user_providerId){
             return res.status(400).json({ status: 'error', message: 'User id is required' });
         }
-        const newCustomer = await Customer.create({ name, phone, email, balance, lastTransaction, userId });
+        const newCustomer = await Customer.create({ name, phone, email, balance, lastTransaction, user_providerId });
         res.status(200).json({ status: 'success', data: newCustomer });
     } catch (error) {
         console.error('Create customer error:', error);
@@ -22,12 +22,12 @@ export const updateCustomer = async (req, res) => {
     try {
         const { uuid } = req.params;
         const { name, phone, email, balance, lastTransaction } = req.body;
-        const userId = req.user.id;
+        const user_providerId = req.user.id;
         console.log("uuid:",uuid,req.body);
-        if (!userId) {
+        if (!user_providerId) {
             return res.status(400).json({ status: 'error', message: 'User id is required' });
         }
-        const customer = await Customer.findOne({ where: { uuid, userId } });
+        const customer = await Customer.findOne({ where: { uuid, user_providerId } });
         if (!customer) {
             return res.status(404).json({ status: 'error', message: 'Customer not found' });
         }
@@ -42,12 +42,12 @@ export const updateCustomer = async (req, res) => {
 export const deleteCustomer = async (req, res) => {
     try {
         const { uuid } = req.params;
-        const userId = req.user.id;
+        const user_providerId = req.user.id;
         console.log("uuid:-",req.params);
-        if (!userId) {
+        if (!user_providerId) {
             return res.status(400).json({ status: 'error', message: 'User id is required' });
         }
-        const customer = await Customer.findOne({ where: { uuid, userId } });
+        const customer = await Customer.findOne({ where: { uuid, user_providerId } });
         if (!customer) {
             return res.status(404).json({ status: 'error', message: 'Customer not found' });
         }
@@ -62,18 +62,18 @@ export const deleteCustomer = async (req, res) => {
 export const getCustomer = async (req, res) => {
     try {
         const { uuid } = req.params;
-        const userId = req.user.id;
+        const user_providerId = req.user.id;
         if (uuid) {
-            const customer = await Customer.findByPk({ where: { uuid, userId } });
+            const customer = await Customer.findByPk({ where: { uuid, user_providerId } });
             if (!customer) {
                 return res.status(404).json({ status: 'error', message: 'Customer not found' });
             }
             return res.status(200).json({ status: 'success', data: customer });
         } else {
-            if(!userId){
+            if(!user_providerId){
                 return res.status(400).json({ status: 'error', message: 'User id is required' });
             }
-            const customers = await Customer.findAll({ where: { userId } });
+            const customers = await Customer.findAll({ where: { user_providerId } });
             return res.status(200).json({ status: 'success', data: customers });
         }
     } catch (error) {

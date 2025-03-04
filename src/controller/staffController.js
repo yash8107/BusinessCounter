@@ -52,7 +52,7 @@ export const staffLogin = async (req, res) => {
         // Generate JWT token
         const token = jwt.sign(
             { 
-                userId: staffProfile.user.id,
+                user_providerId: staffProfile.user.id,
                 staffId: staffProfile.id,
                 role: staffProfile.user.role.role_name,
                 email: staffProfile.user.email,

@@ -31,7 +31,7 @@ export default (sequelize) => {
       type: DataTypes.DATE,
       allowNull: true
     },
-    userId: {
+    user_providerId: {
         type: DataTypes.INTEGER,
         allowNull: false,
         references: {

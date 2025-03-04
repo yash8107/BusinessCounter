@@ -14,7 +14,8 @@ import { seedInitialSetup } from './src/seeders/initialSetup.js';
 import customerRouter from './src/routes/customerRoute.js';
 import { Sequelize } from 'sequelize';
 import invoiceRoutes from './src/routes/invoiceRoutes.js';
-
+import productRoutes from './src/routes/productRoutes.js';
+import servicesRoutes from './src/routes/servicesRoutes.js';
 dotenv.config();
 
 // ES module dirname setup
@@ -56,6 +57,8 @@ app.use(passport.initialize());
 // Routes
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/customers', customerRouter);
+app.use("/api/products", productRoutes);
+app.use('/api/services', servicesRoutes);
 // Use the invoice routes
 app.use('/invoices', invoiceRoutes);
 
