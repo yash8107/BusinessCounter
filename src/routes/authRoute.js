@@ -70,7 +70,7 @@ router.get('/verify-token', authenticateToken, async (req, res) => {
         // Get user details from database using the id from token
         const user = await db.User.findOne({
             where: { id: req.user.id },
-            attributes: ['id', 'first_name', 'last_name', 'email', 'role_id'],
+            attributes: ['id', 'first_name', 'last_name', 'email', 'phone', 'role_id'],
             include: [{
                 model: db.Role,
                 as: 'role',
@@ -92,7 +92,9 @@ router.get('/verify-token', authenticateToken, async (req, res) => {
                 id: user.id,
                 name: `${user.first_name} ${user.last_name}`,
                 email: user.email,
-                role: user.role ? user.role.role_name : null
+                phone: user.phone,
+                role: user.role ? user.role.role_name : null,
+                token: req.token
             }
         });
     } catch (error) {

@@ -31,3 +31,7 @@ Now when you sign in with Google:
 Visit http://localhost:3000/api/v1/auth/google
 After successful authentication, you'll be redirected to a nice success page
 You'll see your JWT token and can copy it for future use
+
+
+npx sequelize-cli db:migrate
+node src/seeders/initialSetup.js

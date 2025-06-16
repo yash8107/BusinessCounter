@@ -65,11 +65,13 @@ const seedInitialSetup = async () => {
 
         // Create super admin in ServiceProviderProfile
         const superAdmin = await db.ServiceProviderProfile.create({
-            first_name: 'Super',
-            last_name: 'Admin',
+            name: 'Super Admin',
+            // first_name: 'Super',
+            // last_name: 'Admin',
             email: superAdminEmail,
             password: hashedPassword,
             phone: '1234567890',
+            gender: 'male',
             company_name: 'Business Counter',
             company_registration_number: 'BC123456',
             company_address: 'Business Counter HQ',

@@ -11,7 +11,11 @@ import authRouter from './src/routes/authRoute.js';
 import { authenticateToken } from './src/middleware/tokenVerify.js';
 import db from './src/models/index.js';
 import { seedInitialSetup } from './src/seeders/initialSetup.js';
-
+import customerRouter from './src/routes/customerRoute.js';
+import { Sequelize } from 'sequelize';
+import invoiceRoutes from './src/routes/invoiceRoutes.js';
+import productRoutes from './src/routes/productRoutes.js';
+import servicesRoutes from './src/routes/servicesRoutes.js';
 dotenv.config();
 
 // ES module dirname setup
@@ -24,6 +28,11 @@ const app = express();
 app.use(express.json());
 app.use(cookieParser());
 
+// Security middleware
+app.use(helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+    contentSecurityPolicy: false
+}));
 // Configure CORS with credentials
 app.use(cors({
     origin: 'http://localhost:5173',
@@ -31,12 +40,6 @@ app.use(cors({
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
     exposedHeaders: ['set-cookie']
-}));
-
-// Security middleware
-app.use(helmet({
-    crossOriginResourcePolicy: { policy: "cross-origin" },
-    contentSecurityPolicy: false
 }));
 
 // Global middleware for cookie settings
@@ -48,12 +51,16 @@ app.use((req, res, next) => {
 
 // Serve static files from public directory
 app.use(express.static(path.join(__dirname, 'public')));         
-
 // Initialize Passport for authentication with Google
 app.use(passport.initialize());
 
 // Routes
 app.use('/api/v1/auth', authRouter);
+app.use('/api/v1/customers', customerRouter);
+app.use("/api/products", productRoutes);
+app.use('/api/services', servicesRoutes);
+// Use the invoice routes
+app.use('/invoices', invoiceRoutes);
 
 app.get('/', (req, res) => {
     res.status(200).json({
@@ -69,6 +76,7 @@ app.get('/protected-route', authenticateToken, (req, res) => {
     });
 });
 
+
 // Handle 404 routes
 app.use("*", (req, res) => {
     res.status(404).json({
@@ -82,6 +90,25 @@ console.log('Using port:', PORT);
 // Sync database and start server
 async function startServer() {
     try {
+        // Create database if it doesn't exist
+        const sequelize = new Sequelize(
+            'postgres',
+            process.env.DB_USER,
+            process.env.DB_PASS,
+            {
+                host: process.env.DB_HOST,
+                dialect: 'postgres',
+                logging: false
+            }
+        );
+
+        await sequelize.query(`CREATE DATABASE "${process.env.DB_NAME}";`)
+        .catch(error => {
+            if (error.original.code !== '42P04') { // 42P04 is the error code for "database already exists"
+                throw error;
+            }
+        });
+        console.log(`Database "${process.env.DB_NAME}" created or already exists.`);
         // Make sure database is connected
         await db.sequelize.authenticate();
         console.log('Database connection has been established successfully.');
@@ -94,8 +121,8 @@ async function startServer() {
         const Role = db.Role;
         const adminRole = await Role.findOne();
         if (!adminRole) {
-        await seedInitialSetup();
-        console.log('Initial setup completed successfully.');
+            await seedInitialSetup();
+            console.log('Initial setup completed successfully.');
         }
         
         // Start the server
