@@ -1,5 +1,5 @@
 import express from 'express';
-import { signup, login, forgotPassword, resetPassword } from '../controller/authController.js';
+import { signup, login, forgotPassword, resetPassword, serviceProviderLogin} from '../controller/authController.js';
 import { staffLogin, getStaffProfile } from '../controller/staffController.js';
 import { authenticateToken } from '../middleware/tokenVerify.js';
 import { checkRole, ROLES } from '../middleware/roleCheck.js';
@@ -67,8 +67,39 @@ router.get('/google/callback',
 // Add verify token endpoint
 router.get('/verify-token', authenticateToken, async (req, res) => {
     try {
-        // Get user details from database using the id from token
-        const user = await db.User.findOne({
+        let user;
+        
+        // Check if the token belongs to a service provider
+        if (req.user.role === ROLES.SUPER_ADMIN) {
+            user = await db.ServiceProviderProfile.findOne({
+                where: { id: req.user.id },
+                attributes: ['id', 'name', 'email', 'phone', 'company_name'],
+                include: [{
+                    model: db.Role,
+                    as: 'role',
+                    attributes: ['role_name']
+                }]
+            });
+
+            if (user) {
+                return res.status(200).json({
+                    status: 'success',
+                    message: 'Token is valid',
+                    user: {
+                        id: user.id,
+                        name: user.name,
+                        email: user.email,
+                        phone: user.phone,
+                        company_name: user.company_name,
+                        role: ROLES.SUPER_ADMIN,
+                        token: req.token
+                    }
+                });
+            }
+        }
+
+        // If not a service provider, check User table
+        user = await db.User.findOne({
             where: { id: req.user.id },
             attributes: ['id', 'first_name', 'last_name', 'email', 'phone', 'role_id'],
             include: [{
@@ -107,25 +138,30 @@ router.get('/verify-token', authenticateToken, async (req, res) => {
 });
 
 // Add logout endpoint
-router.post('/logout', (req, res) => {
+router.post('/logout', authenticateToken, (req, res) => {
     try {
-        // Clear the auth token cookie
-        res.clearCookie('authToken', {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'Lax',
-            path: '/'
-        });
+        // Clear the auth token cookie based on role
+            res.clearCookie('authToken', {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'Lax',
+                path: '/'
+            });
+
+        // Log the logout action
+        console.info(`User with role ${req.user.role} logged out successfully`);
 
         res.status(200).json({
             status: 'success',
-            message: 'Successfully logged out'
+            message: 'Successfully logged out',
+            role: req.user.role
         });
     } catch (error) {
         console.error('Logout error:', error);
         res.status(500).json({
             status: 'error',
-            message: 'Failed to logout'
+            message: 'Failed to logout',
+            details: process.env.NODE_ENV === 'development' ? error.message : undefined
         });
     }
 });
@@ -140,6 +176,7 @@ router.post('/admin/create', authenticateToken, checkRole([ROLES.SUPER_ADMIN]), 
 router.post('/staff/create', authenticateToken, checkRole([ROLES.ADMIN]), signup); // Admin creates staff
 
 // Service Provider routes
+router.post('/service-provider/login', serviceProviderLogin); // Service Provider login
 router.post('/service-provider/create', authenticateToken, checkRole([ROLES.SUPER_ADMIN]), signup); // Super admin creates service provider
 
 export default router;

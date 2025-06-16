@@ -231,11 +231,133 @@ export const signup = async (req, res) => {
 };
 
 // Login Function
+// export const login = async (req, res) => {
+//     try {
+//         const { email, password } = req.body;
+
+//         // Validate input
+//         if (!email || !password) {
+//             return res.status(400).json({
+//                 status: 'error',
+//                 message: 'Please provide email and password'
+//             });
+//         }
+
+//         // First check User table (Admin)
+//         const admin = await User.findOne({ 
+//             where: { email },
+//             include: [{
+//                 model: Role,
+//                 as: 'role'
+//             }]
+//         });
+
+//         // Then check ServiceProviderProfile (Super Admin)
+//         const serviceProvider = await ServiceProviderProfile.findOne({ 
+//             where: { email },
+//             include: [{
+//                 model: Role,
+//                 as: 'role'
+//             }]
+//         });
+
+//         let user = admin || serviceProvider;
+//         let userRole = null;
+
+//         if (!user) {
+//             return res.status(401).json({
+//                 status: 'error',
+//                 message: 'Invalid credentials'
+//             });
+//         }
+
+//         // Get role
+//         if (admin) {
+//             userRole = ROLES.ADMIN;
+//         } else if (serviceProvider) {
+//             userRole = ROLES.SUPER_ADMIN;
+//         }
+
+//         // Check if password exists and is a string
+//         if (!user.password || typeof user.password !== 'string') {
+//             return res.status(401).json({
+//                 status: 'error',
+//                 message: 'Invalid credentials'
+//             });
+//         }
+
+//         // Verify password
+//         const isValidPassword = await bcrypt.compare(password.toString(), user.password);
+//         if (!isValidPassword) {
+//             return res.status(401).json({
+//                 status: 'error',
+//                 message: 'Invalid credentials'
+//             });
+//         }
+
+//         // Generate token
+//         const token = jwt.sign(
+//             { 
+//                 id: user.id,
+//                 email: user.email,
+//                 role: userRole,
+//                 phone: user.phone,
+
+//             },
+//             process.env.JWT_SECRET,
+//             { expiresIn: '24h' }
+//         );
+
+//         // Set cookie
+//         res.cookie('authToken', token, {
+//             httpOnly: true,
+//             secure: process.env.NODE_ENV === 'production',
+//             sameSite: 'Lax',
+//             maxAge: 24 * 60 * 60 * 1000 // 24 hours
+//         });
+
+//         // Prepare response data
+//         const responseData = {
+//             id: user.id,
+//             email: user.email,
+//             first_name: user.first_name,
+//             last_name: user.last_name,
+//             phone: user.phone,
+//             role: userRole,
+//             token: token
+//         };
+
+//         // Add business info for admin
+//         if (admin) {
+//             responseData.business_name = user.business_name;
+//             responseData.business_type = user.business_type;
+//         }
+//         // Add company info for service provider
+//         else if (serviceProvider) {
+//             responseData.company_name = user.company_name;
+//         }
+
+//         // Send success response
+//         res.status(200).json({
+//             status: 'success',
+//             message: 'Login successful',
+//             data: responseData
+//         });
+
+//     } catch (error) {
+//         console.error('Login error:', error);
+//         res.status(500).json({
+//             status: 'error',
+//             message: 'An error occurred during login'
+//         });
+//     }
+// };
+
+// Login Function for Admin
 export const login = async (req, res) => {
     try {
         const { email, password } = req.body;
 
-        // Validate input
         if (!email || !password) {
             return res.status(400).json({
                 status: 'error',
@@ -243,7 +365,6 @@ export const login = async (req, res) => {
             });
         }
 
-        // First check User table (Admin)
         const admin = await User.findOne({ 
             where: { email },
             include: [{
@@ -252,42 +373,21 @@ export const login = async (req, res) => {
             }]
         });
 
-        // Then check ServiceProviderProfile (Super Admin)
-        const serviceProvider = await ServiceProviderProfile.findOne({ 
-            where: { email },
-            include: [{
-                model: Role,
-                as: 'role'
-            }]
-        });
-
-        let user = admin || serviceProvider;
-        let userRole = null;
-
-        if (!user) {
+        if (!admin) {
             return res.status(401).json({
                 status: 'error',
                 message: 'Invalid credentials'
             });
         }
 
-        // Get role
-        if (admin) {
-            userRole = ROLES.ADMIN;
-        } else if (serviceProvider) {
-            userRole = ROLES.SUPER_ADMIN;
-        }
-
-        // Check if password exists and is a string
-        if (!user.password || typeof user.password !== 'string') {
+        if (!admin.password || typeof admin.password !== 'string') {
             return res.status(401).json({
                 status: 'error',
                 message: 'Invalid credentials'
             });
         }
 
-        // Verify password
-        const isValidPassword = await bcrypt.compare(password.toString(), user.password);
+        const isValidPassword = await bcrypt.compare(password.toString(), admin.password);
         if (!isValidPassword) {
             return res.status(401).json({
                 status: 'error',
@@ -295,57 +395,42 @@ export const login = async (req, res) => {
             });
         }
 
-        // Generate token
         const token = jwt.sign(
             { 
-                id: user.id,
-                email: user.email,
-                role: userRole,
-                phone: user.phone,
-
+                id: admin.id,
+                email: admin.email,
+                role: ROLES.ADMIN,
+                phone: admin.phone
             },
             process.env.JWT_SECRET,
             { expiresIn: '24h' }
         );
 
-        // Set cookie
         res.cookie('authToken', token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'Lax',
-            maxAge: 24 * 60 * 60 * 1000 // 24 hours
+            maxAge: 24 * 60 * 60 * 1000
         });
 
-        // Prepare response data
-        const responseData = {
-            id: user.id,
-            email: user.email,
-            first_name: user.first_name,
-            last_name: user.last_name,
-            phone: user.phone,
-            role: userRole,
-            token: token
-        };
-
-        // Add business info for admin
-        if (admin) {
-            responseData.business_name = user.business_name;
-            responseData.business_type = user.business_type;
-        }
-        // Add company info for service provider
-        else if (serviceProvider) {
-            responseData.company_name = user.company_name;
-        }
-
-        // Send success response
         res.status(200).json({
             status: 'success',
-            message: 'Login successful',
-            data: responseData
+            message: 'Admin login successful',
+            data: {
+                id: admin.id,
+                email: admin.email,
+                first_name: admin.first_name,
+                last_name: admin.last_name,
+                phone: admin.phone,
+                business_name: admin.business_name,
+                business_type: admin.business_type,
+                role: ROLES.ADMIN,
+                token
+            }
         });
 
     } catch (error) {
-        console.error('Login error:', error);
+        console.error('Admin Login error:', error);
         res.status(500).json({
             status: 'error',
             message: 'An error occurred during login'
@@ -451,6 +536,93 @@ export const resetPassword = async (req, res) => {
         res.status(500).json({
             status: 'error',
             message: 'Failed to reset password'
+        });
+    }
+};
+
+
+// Super Admin login api 
+
+// Login Function for Service Provider (SUPER_ADMIN)
+export const serviceProviderLogin = async (req, res) => {
+    try {
+        const { email, password } = req.body;
+
+        if (!email || !password) {
+            return res.status(400).json({
+                status: 'error',
+                message: 'Please provide email and password'
+            });
+        }
+
+        const serviceProvider = await ServiceProviderProfile.findOne({ 
+            where: { email },
+            include: [{
+                model: Role,
+                as: 'role'
+            }]
+        });
+
+        if (!serviceProvider) {
+            return res.status(401).json({
+                status: 'error',
+                message: 'Invalid credentials'
+            });
+        }
+
+        if (!serviceProvider.password || typeof serviceProvider.password !== 'string') {
+            return res.status(401).json({
+                status: 'error',
+                message: 'Invalid credentials'
+            });
+        }
+
+        const isValidPassword = await bcrypt.compare(password.toString(), serviceProvider.password);
+        if (!isValidPassword) {
+            return res.status(401).json({
+                status: 'error',
+                message: 'Invalid credentials'
+            });
+        }
+
+        const token = jwt.sign(
+            { 
+                id: serviceProvider.id,
+                email: serviceProvider.email,
+                role: ROLES.SUPER_ADMIN,
+                phone: serviceProvider.phone
+            },
+            process.env.JWT_SECRET,
+            { expiresIn: '24h' }
+        );
+
+        res.cookie('authToken', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'Lax',
+            maxAge: 24 * 60 * 60 * 1000
+        });
+
+        res.status(200).json({
+            status: 'success',
+            message: 'Service Provider login successful',
+            data: {
+                id: serviceProvider.id,
+                email: serviceProvider.email,
+                first_name: serviceProvider.first_name,
+                last_name: serviceProvider.last_name,
+                phone: serviceProvider.phone,
+                company_name: serviceProvider.company_name,
+                role: ROLES.SUPER_ADMIN,
+                token
+            }
+        });
+
+    } catch (error) {
+        console.error('Service Provider Login error:', error);
+        res.status(500).json({
+            status: 'error',
+            message: 'An error occurred during login'
         });
     }
 };

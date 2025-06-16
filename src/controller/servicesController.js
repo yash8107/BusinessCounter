@@ -5,7 +5,7 @@ const { Services } = db;
 // ✅ Create a Service
 export const createService = async (req, res) => {
     try {
-        const { name, description, category, duration, priceType, priceValue, currency, isAvailable } = req.body;
+        const { name, description, category, price, isActive, service_No, sac, gst, total_Sprice } = req.body;
         const user_providerId = req.user.id;
 
         if (!user_providerId) {
@@ -13,7 +13,7 @@ export const createService = async (req, res) => {
         }
 
         const newService = await Services.create({
-            name, description, category, duration, priceType, priceValue, currency, isAvailable, user_providerId
+            name, description, category, price, isActive, user_providerId, service_No, sac, gst,total_Sprice, createdBy: user_providerId
         });
 
         res.status(201).json({ status: 'success', data: newService });
@@ -27,7 +27,7 @@ export const createService = async (req, res) => {
 export const updateService = async (req, res) => {
     try {
         const { uuid } = req.params;
-        const { name, description, category, duration, priceType, priceValue, currency, isAvailable } = req.body;
+        const { name, description, category, price, isActive, service_No, sac, gst,total_Sprice } = req.body;
         const user_providerId = req.user.id;
 
         if (!user_providerId) {
@@ -39,7 +39,7 @@ export const updateService = async (req, res) => {
             return res.status(404).json({ status: 'error', message: 'Service not found' });
         }
 
-        await service.update({ name, description, category, duration, priceType, priceValue, currency, isAvailable });
+        await service.update({ name, description, category, price, isActive, service_No, sac, gst,total_Sprice, updatedBy: user_providerId });
 
         res.status(200).json({ status: 'success', data: service });
     } catch (error) {
@@ -85,9 +85,6 @@ export const getService = async (req, res) => {
             }
             return res.status(200).json({ status: 'success', data: service });
         } else {
-            if (!user_providerId) {
-                return res.status(400).json({ status: 'error', message: 'User ID is required' });
-            }
             const services = await Services.findAll({ where: { user_providerId } });
             return res.status(200).json({ status: 'success', data: services });
         }

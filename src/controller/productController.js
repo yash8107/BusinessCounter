@@ -4,15 +4,19 @@ const { Product } = db;
 // ✅ Create a Product
 export const createProduct = async (req, res) => {
   try {
-    const { name, description, category, basePrice, salePrice, currency, quantityInStock } = req.body;
+    const { name, description, category, basePrice, salePrice,gst,measuringUnit, currency, quantityInStock,lowStockAlertThreshold } = req.body;
     const user_providerId = req.user.id;
 
     if (!user_providerId) {
       return res.status(400).json({ status: 'error', message: 'User ID is required' });
     }
 
+    const salePriceNum = parseFloat(salePrice);
+    const gstNum = parseFloat(gst);
+    const total_Pprice = salePriceNum + (salePriceNum * (gstNum ||0) / 100);
+
     const newProduct = await Product.create({
-      name, description, category, basePrice, salePrice, currency, quantityInStock, user_providerId,
+      name, description, category, basePrice, salePrice,gst: gst || 0,total_Pprice,measuringUnit: measuringUnit || 'pieces', currency, quantityInStock, lowStockAlertThreshold: lowStockAlertThreshold || 1, user_providerId,
     });
 
     res.status(201).json({ status: 'success', data: newProduct });

@@ -51,9 +51,25 @@ export default (sequelize) => {
                 allowNull: false,
                 defaultValue: 0,
             },
+            gst: {
+                type: DataTypes.FLOAT,
+                allowNull: false,
+                defaultValue: 0,
+            },
+            total_Pprice: {
+                type: DataTypes.FLOAT,
+                allowNull: false,
+                defaultValue: 0,
+            },
+            measuringUnit: {
+                type: DataTypes.STRING,
+                allowNull: false,
+                defaultValue: 'pieces',
+            },
             currency: {
                 type: DataTypes.STRING,
                 allowNull: false,
+                defaultValue: 'INR',
             },
             quantityInStock: {
                 type: DataTypes.INTEGER,
@@ -77,18 +93,18 @@ export default (sequelize) => {
                 allowNull: true,
             },
             isActive: {
-                type: DataTypes.BOOLEAN,
-                defaultValue: true,
+                type: DataTypes.ENUM('active', 'inactive'),
+                defaultValue: 'active',
             },
-            createdAt:{
+            createdAt: {
                 type: DataTypes.DATE,
                 allowNull: true,
             },
-            updatedAt:{
+            updatedAt: {
                 type: DataTypes.DATE,
                 allowNull: true,
             },
-            lowStockAlertThreshold:{
+            lowStockAlertThreshold: {
                 type: DataTypes.INTEGER,
                 allowNull: true,
                 defaultValue: 1,

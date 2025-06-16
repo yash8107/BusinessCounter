@@ -8,8 +8,8 @@ export const authenticateToken = (req, res, next) => {
         // Check for token in cookies
         const token = req.cookies.authToken;
         
-        console.log('Cookies received:', req.cookies);
-        console.log('Auth token from cookie:', token);
+        // console.log('Cookies received:', req.cookies);
+        // console.log('Auth token from cookie:', token);
 
         if (!token) {
             return res.status(401).json({

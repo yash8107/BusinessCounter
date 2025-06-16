@@ -25,39 +25,68 @@ export default (sequelize) => {
                 allowNull: false,
             },
             description: {
-                type: DataTypes.TEXT,
+                type: DataTypes.TEXT('long'),
                 allowNull: true,
             },
             category: {
                 type: DataTypes.STRING,
                 allowNull: false,
             },
-            duration: {
-                type: DataTypes.INTEGER,
-                allowNull: true,
-            },
-            priceType: {
-                type: DataTypes.STRING,
-                allowNull: false, // fixed, hourly, daily, weekly, monthly, yearly
-            },
-            priceValue: {
+            price: {
                 type: DataTypes.FLOAT,
-                allowNull: false,
+                allowNull: true,
                 defaultValue: 0,
             },
-            currency: {
+            isActive: {
+                type: DataTypes.ENUM('active', 'inactive'),
+                defaultValue: 'active',
+            },
+            service_No: {
                 type: DataTypes.STRING,
-                allowNull: false,
+                allowNull: true,
             },
-            isAvailable: {
-                type: DataTypes.BOOLEAN,
-                defaultValue: true,
+            sac: {
+                type: DataTypes.STRING,
+                allowNull: true,
             },
-            createdAt:{
+            gst: {
+                type: DataTypes.FLOAT,
+                allowNull: true,
+                defaultValue: 0,
+            },
+            total_Sprice:{
+                type:DataTypes.FLOAT,
+                allowNull:false
+            },
+            createdBy: {
+                type: DataTypes.INTEGER,
+                allowNull: true,
+                references: {
+                    model: 'users',
+                    key: 'id',
+                },
+            },
+            updatedBy: {
+                type: DataTypes.INTEGER,
+                allowNull: true,
+                references: {
+                    model: 'users',
+                    key: 'id',
+                },
+            },
+            deletedBy: {
+                type: DataTypes.INTEGER,
+                allowNull: true,
+                references: {
+                    model: 'users',
+                    key: 'id',
+                },
+            },
+            createdAt: {
                 type: DataTypes.DATE,
                 allowNull: true,
             },
-            updatedAt:{
+            updatedAt: {
                 type: DataTypes.DATE,
                 allowNull: true,
             }
